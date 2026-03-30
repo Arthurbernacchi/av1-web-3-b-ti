@@ -1,45 +1,52 @@
 import express from "express";
 
 const app = express();
-const PORTA = 3000;
 
-// Permitir receber JSON
 app.use(express.json());
 
-// Array de tarefas em memória
-const tarefas = [
-  { id: 1, titulo: "Estudar Node", concluida: false },
-  { id: 2, titulo: "Fazer telas no Figma", concluida: true }
+// Banco de dados falso (lista)
+let tarefas = [
+  { id: 1, titulo: "Estudar" },
+  { id: 2, titulo: "Fazer trabalho" }
 ];
 
-// Rota GET - listar tarefas
+// LISTAR tarefas
 app.get("/tarefas", (req, res) => {
-  res.status(200).json(tarefas);
+  res.json(tarefas);
 });
 
-// Rota POST - criar nova tarefa
+// CRIAR nova tarefa (POST)
 app.post("/tarefas", (req, res) => {
-  const { titulo } = req.body;
-
-  // Validação
-  if (!titulo || titulo.trim() === "") {
-    return res.status(400).json({
-      erro: "Título é obrigatório."
-    });
-  }
-
   const novaTarefa = {
-    id: tarefas.length + 1,
-    titulo: titulo,
-    concluida: false
+    id: tarefas.length + 1, // Gera um ID novo baseado no tamanho da lista
+    titulo: req.body.titulo
   };
-
   tarefas.push(novaTarefa);
-
   res.status(201).json(novaTarefa);
 });
 
+// EDITAR tarefa (PUT)
+app.put("/tarefas/:id", (req, res) => {
+  const id = parseInt(req.params.id);
+  const novoTitulo = req.body.titulo; 
+  const tarefa = tarefas.find(t => t.id === id);
+
+  if (tarefa) {
+    tarefa.titulo = novoTitulo;
+    res.send("Tarefa atualizada com sucesso");
+  } else {
+    res.status(404).send("Tarefa não encontrada");
+  }
+});
+
+// EXCLUIR tarefa (DELETE)
+app.delete("/tarefas/:id", (req, res) => {
+  const id = parseInt(req.params.id);
+  tarefas = tarefas.filter(t => t.id !== id);
+  res.send("Tarefa excluída com sucesso");
+});
+
 // Iniciar servidor
-app.listen(PORTA, () => {
-  console.log(`Servidor rodando na porta ${PORTA}`);
+app.listen(3000, () => {
+  console.log("Servidor rodando em: http://localhost:3000");
 });
